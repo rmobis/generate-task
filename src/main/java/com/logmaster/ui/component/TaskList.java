@@ -1,5 +1,6 @@
 package com.logmaster.ui.component;
 
+import com.logmaster.LogMasterConfig;
 import com.logmaster.LogMasterPlugin;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskTier;
@@ -81,12 +82,15 @@ public class TaskList extends UIPage {
     private int tasksPerPage = 20;
     private int columns = 1;
 
-    public TaskList(Widget window, TaskService taskService, LogMasterPlugin plugin, ClientThread clientThread, SaveDataManager saveDataManager) {
+    private final LogMasterConfig config;
+
+    public TaskList(Widget window, TaskService taskService, LogMasterPlugin plugin, ClientThread clientThread, SaveDataManager saveDataManager, LogMasterConfig config) {
         this.window = window;
         this.taskService = taskService;
         this.plugin = plugin;
         this.clientThread = clientThread;
         this.saveDataManager = saveDataManager;
+        this.config = config;
 
         updateBounds();
 
@@ -210,6 +214,7 @@ public class TaskList extends UIPage {
                 // Add our right click actions
                 taskBg.addAction("Mark as " + (taskCompleted ? "<col=c0392b>incomplete" : "<col=27ae60>completed") + "</col>", () -> plugin.completeTask(task.getId(), finalRelevantTier));
                 int[] checkArray = task.getCheck();
+                Integer count = task.getCount() != null ? task.getCount() : 0;
                 if (checkArray != null && checkArray.length > 0) {
                     taskBg.addAction("==============", () -> {});
                     List<String> lockedItems = new ArrayList<>();
@@ -225,7 +230,6 @@ public class TaskList extends UIPage {
                         }
                     }
                     if (checkArray.length > 1) {
-                        int count = task.getCount();
                         taskBg.addAction("Items acquired: " + (count <= unlockedItems.size() ? "<col=27ae60>" : "<col=c0392b>") + unlockedItems.size() + "/" + count + "</col>", () -> {});
                         taskBg.addAction("==============", () -> {});
                     }
@@ -284,7 +288,27 @@ public class TaskList extends UIPage {
                 taskImage.getWidget().setBorderType(1);
                 taskImage.getWidget().setItemQuantityMode(ItemQuantityMode.NEVER);
                 taskImage.setSize(TASK_ITEM_WIDTH, TASK_ITEM_HEIGHT);
-                taskImage.setItem(task.getItemID());
+                if (
+                    !task.getDescription().contains("clues")
+                    && ((!taskCompleted && config.dynamicIncompleteItems()) || (taskCompleted && config.dynamicCompletedItems()))
+                    && checkArray != null && checkArray.length > 0
+                ) {
+                    List<Integer> potentialItems = new ArrayList<>();
+                    for (int checkID : checkArray) {
+                        if (
+                            (taskCompleted && plugin.clogItemsManager.isCollectionLogItemUnlocked(checkID)) ||
+                            (!taskCompleted && !plugin.clogItemsManager.isCollectionLogItemUnlocked(checkID))
+                         ) {
+                            potentialItems.add(checkID);
+                        }
+                    }
+                    if (potentialItems.isEmpty()) {
+                        potentialItems.add(task.getItemID());
+                    }
+                    taskImage.setItem(potentialItems.get((count - 1) % potentialItems.size()));
+                } else {
+                    taskImage.setItem(task.getItemID());
+                }
                 taskImage.getWidget().revalidate();
                 widgetIndex++;
             }

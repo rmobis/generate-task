@@ -232,7 +232,7 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
     }
 
     private void createTaskList(Widget window) {
-        this.taskList = new TaskList(window, taskService, plugin, clientThread, this.saveDataManager);
+        this.taskList = new TaskList(window, taskService, plugin, clientThread, this.saveDataManager, config);
         this.taskList.setVisibility(false);
     }
 

@@ -6,7 +6,6 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
-import net.runelite.client.plugins.camera.ControlFunction;
 
 import static com.logmaster.LogMasterConfig.CONFIG_GROUP;
 
@@ -76,6 +75,29 @@ public interface LogMasterConfig extends Config
     {
         return true;
     }
+
+    @ConfigItem(
+            keyName = "dynamicCompletedItems",
+            name = "Dynamic completed items",
+            description = "Display complete tasks with items you have already obtained",
+            position = 6
+    )
+    default boolean dynamicCompletedItems()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "dynamicIncompleteItems",
+            name = "Dynamic incomplete items",
+            description = "Display incomplete tasks with items you have not obtained yet",
+            position = 7
+    )
+    default boolean dynamicIncompleteItems()
+    {
+        return false;
+    }
+
 //
 //    @ConfigItem(
 //            keyName = "taskChatCommand",
