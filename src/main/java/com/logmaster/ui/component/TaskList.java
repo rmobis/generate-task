@@ -3,7 +3,6 @@ package com.logmaster.ui.component;
 import com.logmaster.LogMasterPlugin;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskTier;
-import com.logmaster.domain.TieredTaskList;
 import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.task.TaskService;
 import com.logmaster.ui.generic.UIButton;
@@ -21,7 +20,6 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.logmaster.LogMasterPlugin.getCenterX;
 import static com.logmaster.ui.InterfaceConstants.*;
 
 @Slf4j
@@ -177,18 +175,29 @@ public class TaskList extends UIPage {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
                 int i = row * columns + col;
+                if (i >= tasksToShow.size() || i > tasksToShowCount) {
+                    break;
+                }
+
+                // Get the task and relevant tier
+                Task task = tasksToShow.get(i);
+                TaskTier finalRelevantTier = relevantTier;
+
+                // Calculate task placement
                 int taskY = startY + (row * (TASK_HEIGHT + verticalMargin));
                 int taskX = startX + col * (TASK_WIDTH + COLUMN_SPACING);
-                if (i > tasksToShowCount) break;
+
                 // Create the task background
                 UIGraphic taskBg;
                 if (taskBackgrounds.size() <= widgetIndex) {
+                    // Create a new background if it doesn't exist yet
                     taskBg = new UIGraphic(window.createChild(-1, WidgetType.GRAPHIC));
                     taskBackgrounds.add(taskBg);
                     this.add(taskBg);
                 } else {
                     taskBg = taskBackgrounds.get(widgetIndex);
                 }
+                // Ensure it's visible, clear the actions, set size and position
                 taskBg.getWidget().setHidden(false);
                 taskBg.clearActions();
                 taskBg.getWidget().clearActions();
@@ -196,56 +205,54 @@ public class TaskList extends UIPage {
                 taskBg.setPosition(taskX, taskY);
                 taskBg.getWidget().setPos(taskX, taskY);
                 taskBg.getWidget().revalidate();
-                // Figure out which background we should be showing
-                if (i < tasksToShow.size()) {
-                    Task task = tasksToShow.get(i);
-                    TaskTier finalRelevantTier = relevantTier;
-                    boolean taskCompleted = plugin.isTaskCompleted(task.getId(), finalRelevantTier);
-                    taskBg.addAction("Mark as " + (taskCompleted ? "<col=c0392b>incomplete" : "<col=27ae60>completed") + "</col>", () -> plugin.completeTask(task.getId(), finalRelevantTier));
-                    
-                    int[] checkArray = task.getCheck();
-                    if (checkArray != null && checkArray.length > 0) {
-                        taskBg.addAction("==============", () -> {});
-                        List<String> lockedItems = new ArrayList<>();
-                        List<String> unlockedItems = new ArrayList<>();
-                        for (int checkID : checkArray) {
-                            String itemName = plugin.itemManager.getItemComposition(checkID).getName();
-                            itemName = itemName.replaceFirst("^Pet\\s+", "");
-                            itemName = itemName.replaceFirst("^(.)", itemName.substring(0, 1).toUpperCase());
-                            if (plugin.clogItemsManager.isCollectionLogItemUnlocked(checkID)) {
-                                unlockedItems.add(itemName);
-                            } else {
-                                lockedItems.add(itemName);
-                            }
-                        }
-                        if (checkArray.length > 1) {
-                            int count = task.getCount();
-                            taskBg.addAction("Items acquired: " + (count <= unlockedItems.size() ? "<col=27ae60>" : "<col=c0392b>") + unlockedItems.size() + "/" + count + "</col>", () -> {});
-                            taskBg.addAction("==============", () -> {});
-                        }
-                        lockedItems.sort(String::compareToIgnoreCase);
-                        for (String item : lockedItems) {
-                            taskBg.addAction("<col=c0392b>-</col> " + item, () -> {});
-                        }
-                        unlockedItems.sort(String::compareToIgnoreCase);
-                        for (String item : unlockedItems) {
-                            taskBg.addAction("<col=27ae60>+</col> " + item, () -> {});
-                        }
-                        taskBg.addAction("     ", () -> {});
-                    }
+                boolean taskCompleted = plugin.isTaskCompleted(task.getId(), finalRelevantTier);
 
-                    if (taskCompleted) {
-                        taskBg.setSprite(TASK_COMPLETE_BACKGROUND_SPRITE_ID);
-                    } else if (saveDataManager.getSaveData().getActiveTaskPointer() != null && saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier() == relevantTier && saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId() == task.getId()) {
-                        taskBg.setSprite(TASK_CURRENT_BACKGROUND_SPRITE_ID);
-                    } else {
-                        taskBg.setSprite(TASK_LIST_BACKGROUND_SPRITE_ID);
+                // Add our right click actions
+                taskBg.addAction("Mark as " + (taskCompleted ? "<col=c0392b>incomplete" : "<col=27ae60>completed") + "</col>", () -> plugin.completeTask(task.getId(), finalRelevantTier));
+                int[] checkArray = task.getCheck();
+                if (checkArray != null && checkArray.length > 0) {
+                    taskBg.addAction("==============", () -> {});
+                    List<String> lockedItems = new ArrayList<>();
+                    List<String> unlockedItems = new ArrayList<>();
+                    for (int checkID : checkArray) {
+                        String itemName = plugin.itemManager.getItemComposition(checkID).getName();
+                        itemName = itemName.replaceFirst("^Pet\\s+", "");
+                        itemName = itemName.replaceFirst("^(.)", itemName.substring(0, 1).toUpperCase());
+                        if (plugin.clogItemsManager.isCollectionLogItemUnlocked(checkID)) {
+                            unlockedItems.add(itemName);
+                        } else {
+                            lockedItems.add(itemName);
+                        }
                     }
+                    if (checkArray.length > 1) {
+                        int count = task.getCount();
+                        taskBg.addAction("Items acquired: " + (count <= unlockedItems.size() ? "<col=27ae60>" : "<col=c0392b>") + unlockedItems.size() + "/" + count + "</col>", () -> {});
+                        taskBg.addAction("==============", () -> {});
+                    }
+                    lockedItems.sort(String::compareToIgnoreCase);
+                    for (String item : lockedItems) {
+                        taskBg.addAction("<col=c0392b>-</col> " + item, () -> {});
+                    }
+                    unlockedItems.sort(String::compareToIgnoreCase);
+                    for (String item : unlockedItems) {
+                        taskBg.addAction("<col=27ae60>+</col> " + item, () -> {});
+                    }
+                    taskBg.addAction("     ", () -> {});
+                }
+
+                // Set our background sprite based on task state
+                if (taskCompleted) {
+                    taskBg.setSprite(TASK_COMPLETE_BACKGROUND_SPRITE_ID);
+                } else if (saveDataManager.getSaveData().getActiveTaskPointer() != null && saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier() == relevantTier && saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId() == task.getId()) {
+                    taskBg.setSprite(TASK_CURRENT_BACKGROUND_SPRITE_ID);
                 } else {
                     taskBg.setSprite(TASK_LIST_BACKGROUND_SPRITE_ID);
                 }
+
+                // Create the task label
                 UILabel taskLabel;
                 if (taskLabels.size() <= widgetIndex) {
+                    // Create a new label if it doesn't exist yet
                     taskLabel = new UILabel(window.createChild(-1, WidgetType.TEXT));
                     this.add(taskLabel);
                     taskLabels.add(taskLabel);
@@ -255,20 +262,17 @@ public class TaskList extends UIPage {
                 taskLabel.getWidget().setHidden(false);
                 taskLabel.getWidget().setTextColor(Color.WHITE.getRGB());
                 taskLabel.getWidget().setTextShadowed(true);
-                if (i < tasksToShow.size()) {
-                    Task task = tasksToShow.get(i);
-                    taskLabel.getWidget().setName(task.getDescription());
-                    taskLabel.setText(task.getDescription());
-                } else {
-                    taskLabel.getWidget().setName("");
-                    taskLabel.setText("");
-                }
+                taskLabel.getWidget().setName(task.getDescription());
+                taskLabel.setText(task.getDescription());
                 taskLabel.setFont(496);
                 taskLabel.setPosition(taskX + 60, taskY);
                 taskLabel.setSize(TASK_WIDTH-60, TASK_HEIGHT);
                 taskLabel.getWidget().revalidate();
+
+                // Create the task image
                 UIGraphic taskImage;
                 if(taskImages.size() <= widgetIndex) {
+                    // Create a new image if it doesn't exist yet
                     taskImage = new UIGraphic(window.createChild(-1, WidgetType.GRAPHIC));
                     this.add(taskImage);
                     taskImages.add(taskImage);
@@ -280,12 +284,7 @@ public class TaskList extends UIPage {
                 taskImage.getWidget().setBorderType(1);
                 taskImage.getWidget().setItemQuantityMode(ItemQuantityMode.NEVER);
                 taskImage.setSize(TASK_ITEM_WIDTH, TASK_ITEM_HEIGHT);
-                if (i < tasksToShow.size()) {
-                    Task task = tasksToShow.get(i);
-                    taskImage.setItem(task.getItemID());
-                } else {
-                    taskImage.setItem(-1);
-                }
+                taskImage.setItem(task.getItemID());
                 taskImage.getWidget().revalidate();
                 widgetIndex++;
             }
