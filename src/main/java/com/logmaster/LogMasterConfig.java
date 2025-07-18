@@ -76,17 +76,4 @@ public interface LogMasterConfig extends Config
     {
         return true;
     }
-//
-//    @ConfigItem(
-//            keyName = "taskChatCommand",
-//            name = "Enable !task command",
-//            description = "Enable the !task chat command to show your current tier progress and task",
-//            position = 6
-//    )
-//    default boolean taskChatCommand()
-//    {
-//        return true;
-//    }
-
-
 }
