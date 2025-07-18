@@ -7,11 +7,9 @@ import com.logmaster.domain.SaveData;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskTier;
 import com.logmaster.domain.TieredTaskList;
-import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.util.FileUtils;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.callback.ClientThread;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -26,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskService {
 
-    private static final String DEF_FILE_TASKS = "default-tasks.json";
+    private static final String DEF_FILE_TASKS = "task-list/lists/tedious.json";
 
     @Inject
     private Gson gson;
@@ -36,12 +34,6 @@ public class TaskService {
 
     @Inject
     private TaskListClient taskListClient;
-
-    @Inject
-    private ClientThread clientThread;
-
-    @Inject
-    private SaveDataManager saveDataManager;
 
     private TieredTaskList localList;
     private TieredTaskList remoteList;
@@ -62,16 +54,15 @@ public class TaskService {
     }
 
     public Map<TaskTier, Integer> completionPercentages(SaveData saveData) {
-        Map<TaskTier, Set<Integer>> progressData = saveData.getProgress();
+        Map<TaskTier, Set<String>> progressData = saveData.getProgress();
         TieredTaskList taskList = getTaskList();
 
         Map<TaskTier, Integer> completionPercentages = new HashMap<>();
         for (TaskTier tier : TaskTier.values()) {
-            Set<Integer> tierCompletedTasks = new HashSet<>(progressData.get(tier));
-            Set<Integer> tierTaskIdList = taskList.getForTier(tier)
+            Set<String> tierCompletedTasks = new HashSet<>(progressData.get(tier));
+            Set<String> tierTaskIdList = taskList.getForTier(tier)
                     .stream()
-                    .mapToInt(Task::getId)
-                    .boxed()
+                    .map(Task::getId)
                     .collect(Collectors.toSet());
 
             tierCompletedTasks.retainAll(tierTaskIdList);

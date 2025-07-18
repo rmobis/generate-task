@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class Task {
-    private int id;
-    private String description;
-    private int itemID;
+    private String id;
+    private String name;
+    private int displayItemId;
 }

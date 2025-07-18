@@ -1,19 +1,15 @@
 package com.logmaster.persistence;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonSyntaxException;
+import com.logmaster.domain.BaseSaveData;
 import com.logmaster.domain.SaveData;
 import com.logmaster.domain.Task;
-import com.logmaster.domain.TaskTier;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashSet;
 
 import static com.logmaster.LogMasterConfig.CONFIG_GROUP;
 import static com.logmaster.LogMasterConfig.SAVE_DATA_KEY;
@@ -50,15 +46,15 @@ public class SaveDataManager {
             return new SaveData();
         }
 
-        SaveData data = null;
         try {
-            data = GSON.fromJson(json, SaveData.class);
-        } catch (Exception e) {
-            log.error("Unable to parse save data JSON", e);
-        }
+            BaseSaveData base = GSON.fromJson(json, BaseSaveData.class);
+            if (BaseSaveData.LATEST_VERSION.equals(base.getVersion())) {
+                return GSON.fromJson(json, SaveData.class);
+            }
 
-        if (data != null) {
-            return data;
+            // TODO: convert old version
+        } catch (JsonSyntaxException e) {
+            log.error("Unable to parse save data JSON", e);
         }
 
         return new SaveData();

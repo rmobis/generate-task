@@ -144,8 +144,8 @@ public class LogMasterPlugin extends Plugin {
 		newTaskPointer.setTaskTier(getCurrentTier());
 		this.saveDataManager.getSaveData().setActiveTaskPointer(newTaskPointer);
 		this.saveDataManager.save();
-		interfaceManager.rollTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDescription(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getItemID(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
-		log.debug("Task generated: "+this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDescription());
+		interfaceManager.rollTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDisplayItemId(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
+		log.debug("Task generated: "+this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName());
 
 		this.saveDataManager.save();
 	}
@@ -154,14 +154,14 @@ public class LogMasterPlugin extends Plugin {
 		completeTask(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId(), saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier());
 	}
 
-	public void completeTask(int taskID, TaskTier tier) {
+	public void completeTask(String taskID, TaskTier tier) {
 		this.client.playSoundEffect(SoundEffectID.UI_BOOP);
 
 		if (saveDataManager.getSaveData().getProgress().get(tier).contains(taskID)) {
 			saveDataManager.getSaveData().getProgress().get(tier).remove(taskID);
 		} else {
 			addCompletedTask(taskID, tier);
-			if (saveDataManager.getSaveData().getActiveTaskPointer() != null && taskID == saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId()) {
+			if (saveDataManager.getSaveData().getActiveTaskPointer() != null && taskID.equals(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId())) {
 				nullCurrentTask();
 			}
 		}
@@ -183,7 +183,7 @@ public class LogMasterPlugin extends Plugin {
 		return (window.getHeight() / 2) - (height / 2);
 	}
 
-	public void addCompletedTask(int taskID, TaskTier tier) {
+	public void addCompletedTask(String taskID, TaskTier tier) {
 		this.saveDataManager.getSaveData().getProgress().get(tier).add(taskID);
 		this.saveDataManager.save();
 	}

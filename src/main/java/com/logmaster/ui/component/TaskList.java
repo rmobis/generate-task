@@ -3,7 +3,6 @@ package com.logmaster.ui.component;
 import com.logmaster.LogMasterPlugin;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskTier;
-import com.logmaster.domain.TieredTaskList;
 import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.task.TaskService;
 import com.logmaster.ui.generic.UIButton;
@@ -21,7 +20,6 @@ import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.logmaster.LogMasterPlugin.getCenterX;
 import static com.logmaster.ui.InterfaceConstants.*;
 
 @Slf4j
@@ -202,7 +200,11 @@ public class TaskList extends UIPage {
                     taskBg.addAction("Mark", () -> plugin.completeTask(task.getId(), finalRelevantTier));
                     if (saveDataManager.getSaveData().getProgress().get(relevantTier).contains(task.getId())) {
                         taskBg.setSprite(TASK_COMPLETE_BACKGROUND_SPRITE_ID);
-                    } else if (saveDataManager.getSaveData().getActiveTaskPointer() != null && saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier() == relevantTier && saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId() == task.getId()) {
+                    } else if (
+                            saveDataManager.getSaveData().getActiveTaskPointer() != null
+                                    && saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier() == relevantTier
+                                    && saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId().equals(task.getId())
+                    ) {
                         taskBg.setSprite(TASK_CURRENT_BACKGROUND_SPRITE_ID);
                     } else {
                         taskBg.setSprite(TASK_LIST_BACKGROUND_SPRITE_ID);
@@ -223,8 +225,8 @@ public class TaskList extends UIPage {
                 taskLabel.getWidget().setTextShadowed(true);
                 if (i < tasksToShow.size()) {
                     Task task = tasksToShow.get(i);
-                    taskLabel.getWidget().setName(task.getDescription());
-                    taskLabel.setText(task.getDescription());
+                    taskLabel.getWidget().setName(task.getName());
+                    taskLabel.setText(task.getName());
                 } else {
                     taskLabel.getWidget().setName("");
                     taskLabel.setText("");
@@ -248,7 +250,7 @@ public class TaskList extends UIPage {
                 taskImage.setSize(TASK_ITEM_WIDTH, TASK_ITEM_HEIGHT);
                 if (i < tasksToShow.size()) {
                     Task task = tasksToShow.get(i);
-                    taskImage.setItem(task.getItemID());
+                    taskImage.setItem(task.getDisplayItemId());
                 } else {
                     taskImage.setItem(-1);
                 }
