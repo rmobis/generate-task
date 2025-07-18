@@ -6,13 +6,18 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @ToString
 public class SaveData {
+    public SaveData() {
+        this.progress = new HashMap<>();
+
+        for (TaskTier tier : TaskTier.values()) {
+            this.progress.put(tier, new HashSet<>());
+        }
+    }
+
     // We have to leave this here in case someone was running the old version of the plugin
     @Getter
     private HashMap<Integer, Integer> completedTasks = new HashMap<>();
@@ -21,7 +26,7 @@ public class SaveData {
 
     // New save data!
     @Getter
-    private Map<TaskTier, Set<Integer>> progress = new HashMap<>();
+    private Map<TaskTier, Set<Integer>> progress;
 
     @Getter
     @Setter
