@@ -1,20 +1,29 @@
 package com.logmaster.persistence;
 
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.logmaster.domain.BaseSaveData;
 import com.logmaster.domain.SaveData;
 import com.logmaster.domain.Task;
+import com.logmaster.domain.TaskTier;
+import com.logmaster.domain.old.OldSaveData;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Set;
 
 import static com.logmaster.LogMasterConfig.CONFIG_GROUP;
 import static com.logmaster.LogMasterConfig.SAVE_DATA_KEY;
+import static com.logmaster.LogMasterConfig.BACKUP_SAVE_DATA_KEY;
 import static net.runelite.http.api.RuneLiteAPI.GSON;
-
 @Singleton
 @Slf4j
 public class SaveDataManager {
@@ -29,8 +38,8 @@ public class SaveDataManager {
     }
 
     public void save() {
-        String json = GSON.toJson(saveData);
-        configManager.setRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY, json);
+        String json = GSON.toJson(this.saveData);
+        this.configManager.setRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY, json);
     }
 
     public Task currentTask() {
@@ -52,11 +61,60 @@ public class SaveDataManager {
                 return GSON.fromJson(json, SaveData.class);
             }
 
-            // TODO: convert old version
+            this.saveBackup(json);
+            return this.update(json);
         } catch (JsonSyntaxException e) {
             log.error("Unable to parse save data JSON", e);
         }
 
         return new SaveData();
+    }
+
+    @SuppressWarnings("deprecation")
+    private SaveData update(String json) {
+        SaveData updated = new SaveData();
+
+        OldSaveData old = null;
+        try {
+            old = GSON.fromJson(json, OldSaveData.class);
+        } catch (JsonSyntaxException e) {
+            log.error("Unable to parse *old* save data JSON", e);
+        }
+
+        if (old == null) {
+            return updated;
+        }
+
+        Type mapType = new TypeToken<Map<TaskTier, Map<Integer, String>>>() {}.getType();
+        Map<TaskTier, Map<Integer, String>> v0MigrationData;
+        try (InputStream resourceStream = this.getClass().getResourceAsStream("v0-migration.json")) {
+            assert resourceStream != null;
+            InputStreamReader definitionReader = new InputStreamReader(resourceStream);
+            v0MigrationData = GSON.fromJson(definitionReader, mapType);
+        } catch (IOException e) {
+            log.error("Unable to parse migration data", e);
+            return updated;
+        }
+
+        Map<TaskTier, Set<Integer>> oldProgress = old.getProgress();
+        Map<TaskTier, Set<String>> newProgress = updated.getProgress();
+
+        for (TaskTier tier : TaskTier.values()) {
+            Set<Integer> oldTierData = oldProgress.get(tier);
+            Set<String> newTierData = newProgress.get(tier);
+            Map<Integer, String> tierMigrationData = v0MigrationData.get(tier);
+
+            for (Integer oldTaskId : oldTierData) {
+                if (tierMigrationData.containsKey(oldTaskId)) {
+                    newTierData.add(tierMigrationData.get(oldTaskId));
+                }
+            }
+        }
+
+        return updated;
+    }
+
+    private void saveBackup(String json) {
+        this.configManager.setRSProfileConfiguration(CONFIG_GROUP, BACKUP_SAVE_DATA_KEY, json);
     }
 }
