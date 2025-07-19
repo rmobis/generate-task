@@ -213,7 +213,7 @@ public class TaskList extends UIPage {
 
                 // Add our right click actions
                 taskBg.addAction("Mark as " + (taskCompleted ? "<col=c0392b>incomplete" : "<col=27ae60>completed") + "</col>", () -> plugin.completeTask(task.getId(), finalRelevantTier));
-                int[] checkArray = task.getCheck();
+                int[] checkArray = task.getItemIds();
                 Integer count = task.getCount() != null ? task.getCount() : 0;
                 if (checkArray != null && checkArray.length > 0) {
                     taskBg.addAction("==============", () -> {});

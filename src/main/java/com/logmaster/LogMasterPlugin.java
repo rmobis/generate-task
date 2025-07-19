@@ -22,12 +22,12 @@ import net.runelite.api.SoundEffectID;
 import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.input.MouseManager;
-import net.runelite.api.events.ScriptPostFired;
-import net.runelite.api.events.ScriptPreFired;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -43,6 +43,8 @@ import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,6 +54,9 @@ public class LogMasterPlugin extends Plugin {
 
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private LogMasterConfig config;
@@ -73,6 +78,9 @@ public class LogMasterPlugin extends Plugin {
 
 	@Inject
 	private InterfaceManager interfaceManager;
+
+	@Inject
+	public ItemManager itemManager;
 
 	@Inject
 	public ClogItemsManager clogItemsManager;

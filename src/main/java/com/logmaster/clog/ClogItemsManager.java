@@ -130,7 +130,7 @@ public class ClogItemsManager {
         // Update completed tasks automatically
         for (TaskTier tier : TaskTier.values()) {
             for (Task task : taskService.getTaskList().getForTier(tier)) {
-                int[] check = task.getCheck();
+                int[] check = task.getItemIds();
                 Integer taskCount = task.getCount();
                 if (check == null || taskCount == null) {
                     continue;
