@@ -3,12 +3,7 @@ package com.logmaster.task;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -18,24 +13,17 @@ import java.io.IOException;
 @Singleton
 public class TaskListClient {
 
-    private static final String TASK_LIST_URL = "raw.githubusercontent.com";
-    private static final String TASK_LIST_PATH = "Alex-Banna/generate-task-tasks/main/tasks.json";
+    private static final String TASK_LIST_URL = "https://raw.githubusercontent.com/OSRS-Taskman/task-list/refs/heads/main/lists/tedious.json";
 
     @Inject
     private OkHttpClient okHttpClient;
 
     public void getTaskList(Callback callback) throws IOException {
-        HttpUrl url = new HttpUrl.Builder()
-                .scheme("https")
-                .host(TASK_LIST_URL)
-                .addPathSegments(TASK_LIST_PATH)
+        Request request = new Request.Builder()
+                .url(TASK_LIST_URL)
+                .get()
                 .build();
 
-        getRequest(url, callback);
-    }
-
-    private void getRequest(HttpUrl url, Callback callback) {
-        Request request = new Request.Builder().url(url).get().build();
         okHttpClient.newCall(request).enqueue(callback);
     }
 

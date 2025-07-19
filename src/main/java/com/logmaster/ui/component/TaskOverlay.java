@@ -11,11 +11,7 @@ import net.runelite.client.ui.overlay.Overlay;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.*;
 
 @Singleton
 public class TaskOverlay extends Overlay {
@@ -57,8 +53,8 @@ public class TaskOverlay extends Overlay {
                 return EMPTY;
             }
 
-            Image icon = itemManager.getImage(currentTask.getItemID());
-            String task = currentTask.getDescription();
+            Image icon = itemManager.getImage(currentTask.getDisplayItemId());
+            String task = currentTask.getName();
 
 
             FontMetrics fm = g.getFontMetrics();

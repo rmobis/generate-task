@@ -13,8 +13,6 @@ import com.logmaster.ui.component.TaskList;
 import com.logmaster.ui.generic.UICheckBox;
 import com.logmaster.ui.generic.dropdown.UIDropdown;
 import com.logmaster.ui.generic.dropdown.UIDropdownOption;
-import com.logmaster.ui.generic.UIButton;
-import com.logmaster.ui.generic.UIGraphic;
 import com.logmaster.util.FileUtils;
 import net.runelite.api.Client;
 import net.runelite.api.SoundEffectID;
@@ -30,11 +28,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.logmaster.ui.InterfaceConstants.*;
+import static com.logmaster.ui.InterfaceConstants.DEF_FILE_SPRITES;
 
 @Singleton
 public class InterfaceManager implements MouseListener, MouseWheelListener {
@@ -264,7 +261,7 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
         if(this.taskDashboard == null) return;
 
         if (saveDataManager.getSaveData().getActiveTaskPointer() != null) {
-            this.taskDashboard.setTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDescription(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getItemID(), null);
+            this.taskDashboard.setTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDisplayItemId(), null);
             this.taskDashboard.disableGenerateTask();
         } else {
             plugin.nullCurrentTask();

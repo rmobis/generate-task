@@ -1,56 +1,43 @@
 package com.logmaster.persistence;
 
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.logmaster.domain.SaveData;
-import com.logmaster.domain.Task;
-import com.logmaster.domain.TaskPointer;
-import com.logmaster.domain.TaskTier;
+import com.logmaster.domain.*;
+import com.logmaster.domain.old.OldSaveData;
+import com.logmaster.domain.old.OldTask;
+import com.logmaster.domain.old.OldTaskPointer;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.plugins.slayer.SlayerConfig;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.io.File;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Set;
 
-import static com.logmaster.LogMasterConfig.CONFIG_GROUP;
-import static com.logmaster.LogMasterConfig.SAVE_DATA_KEY;
+import static com.logmaster.LogMasterConfig.*;
 import static net.runelite.http.api.RuneLiteAPI.GSON;
 
 @Singleton
 @Slf4j
 public class SaveDataManager {
-
-    private static final String DATA_FOLDER_NAME = "generate-task";
-
-    @Inject
-    private Client client;
-
     @Inject
     private ConfigManager configManager;
 
     private SaveData saveData;
 
-    public SaveData getSaveData() {
-        saveData = loadRLProfileSaveData();
-        if (saveData == null) {
-            SaveData localSave = loadLocalPlayerSaveData();
-            if (localSave != null) {
-                saveData = localSave;
-            } else {
-                saveData = initialiseSaveData();
-            }
-        }
-        return saveData;
+    public @NonNull SaveData getSaveData() {
+        this.saveData = loadSaveData();
+        return this.saveData;
     }
 
     public void save() {
-        String json = GSON.toJson(saveData);
-        configManager.setRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY, json);
+        String json = GSON.toJson(this.saveData);
+        this.configManager.setRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY, json);
     }
 
     public Task currentTask() {
@@ -60,61 +47,82 @@ public class SaveDataManager {
         return getSaveData().getActiveTaskPointer().getTask();
     }
 
-    private SaveData loadRLProfileSaveData() {
-        String saveDataJson = configManager.getRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY, String.class);
-        if (saveDataJson == null) {
-            return null;
+    private SaveData loadSaveData() {
+        String json = this.configManager.getRSProfileConfiguration(CONFIG_GROUP, SAVE_DATA_KEY);
+        if (json == null) {
+            return new SaveData();
         }
+
         try {
-            return GSON.fromJson(saveDataJson, new TypeToken<SaveData>() {}.getType());
-        } catch (Exception e) {
-            e.printStackTrace();
+            BaseSaveData base = GSON.fromJson(json, BaseSaveData.class);
+            if (BaseSaveData.LATEST_VERSION.equals(base.getVersion())) {
+                return GSON.fromJson(json, SaveData.class);
+            }
+
+            this.saveBackup(json);
+            return this.update(json);
+        } catch (JsonSyntaxException e) {
+            log.error("Unable to parse save data JSON", e);
         }
-        return null;
+
+        return new SaveData();
     }
 
-    private SaveData loadLocalPlayerSaveData() {
-        File playerFolder = new File(RuneLite.RUNELITE_DIR, DATA_FOLDER_NAME);
-        if (!playerFolder.exists()) {
-            return null;
-        }
-        File playerFile = new File(playerFolder, client.getAccountHash() + ".txt");
-        if (!playerFile.exists()) {
-            return null;
-        }
+    @SuppressWarnings("deprecation")
+    private SaveData update(String json) {
+        SaveData updated = new SaveData();
+
+        OldSaveData old = null;
         try {
-            String json = new Scanner(playerFile).useDelimiter("\\Z").next();
-            SaveData loaded = GSON.fromJson(json, new TypeToken<SaveData>() {}.getType());
-            for (TaskTier loopTier : TaskTier.values()) {
-                if (!loaded.getProgress().containsKey(loopTier)) {
-                    loaded.getProgress().put(loopTier, new HashSet<>());
+            old = GSON.fromJson(json, OldSaveData.class);
+        } catch (JsonSyntaxException e) {
+            log.error("Unable to parse *old* save data JSON", e);
+        }
+
+        if (old == null) {
+            return updated;
+        }
+
+        Type mapType = new TypeToken<Map<TaskTier, Map<Integer, String>>>() {}.getType();
+        Map<TaskTier, Map<Integer, String>> v0MigrationData;
+        try (InputStream resourceStream = this.getClass().getResourceAsStream("v0-migration.json")) {
+            assert resourceStream != null;
+            InputStreamReader definitionReader = new InputStreamReader(resourceStream);
+            v0MigrationData = GSON.fromJson(definitionReader, mapType);
+        } catch (IOException e) {
+            log.error("Unable to parse migration data", e);
+            return updated;
+        }
+
+        Map<TaskTier, Set<Integer>> oldProgress = old.getProgress();
+        Map<TaskTier, Set<String>> newProgress = updated.getProgress();
+
+        for (TaskTier tier : TaskTier.values()) {
+            Set<Integer> oldTierData = oldProgress.get(tier);
+            Set<String> newTierData = newProgress.get(tier);
+            Map<Integer, String> tierMigrationData = v0MigrationData.get(tier);
+
+            for (Integer oldTaskId : oldTierData) {
+                if (tierMigrationData.containsKey(oldTaskId)) {
+                    newTierData.add(tierMigrationData.get(oldTaskId));
                 }
             }
-            // Can get rid of this eventually
-            if (!loaded.getCompletedTasks().isEmpty()) {
-                loaded.getProgress().get(TaskTier.MASTER).addAll(loaded.getCompletedTasks().keySet());
-            }
-            if (loaded.currentTask != null) {
-                TaskPointer taskPointer = new TaskPointer();
-                taskPointer.setTask(loaded.currentTask);
-                taskPointer.setTaskTier(TaskTier.MASTER);
-                loaded.setActiveTaskPointer(taskPointer);
-                loaded.currentTask = null;
-            }
-            return loaded;
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return null;
+
+        updated.setSelectedTier(old.getSelectedTier());
+
+        OldTaskPointer oldTaskPointer = old.getActiveTaskPointer();
+        if (oldTaskPointer != null) {
+            OldTask oldTask = oldTaskPointer.getTask();
+            String newTaskId = v0MigrationData.get(oldTaskPointer.getTaskTier()).get(oldTask.getId());
+            Task newTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID());
+            updated.setActiveTaskPointer(new TaskPointer(oldTaskPointer.getTaskTier(), newTask));
+        }
+
+        return updated;
     }
 
-    private SaveData initialiseSaveData() {
-        SaveData created = new SaveData();
-        for (TaskTier loopTier : TaskTier.values()) {
-            if (!created.getProgress().containsKey(loopTier)) {
-                created.getProgress().put(loopTier, new HashSet<>());
-            }
-        }
-        return created;
+    private void saveBackup(String json) {
+        this.configManager.setRSProfileConfiguration(CONFIG_GROUP, BACKUP_SAVE_DATA_KEY, json);
     }
 }

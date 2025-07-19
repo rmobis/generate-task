@@ -1,14 +1,15 @@
 package com.logmaster.domain;
 
-import com.logmaster.domain.Task;
-import com.logmaster.domain.TaskTier;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class TaskPointer {
-
     private TaskTier taskTier;
     private Task task;
 }
