@@ -1,7 +1,5 @@
 package com.logmaster.domain;
 
-import com.logmaster.domain.Task;
-import com.logmaster.domain.TaskTier;
 import lombok.Getter;
 import lombok.Setter;
 

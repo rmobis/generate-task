@@ -16,10 +16,12 @@ import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetType;
 
-import javax.swing.Timer;
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
-import static com.logmaster.LogMasterPlugin.*;
+import static com.logmaster.LogMasterPlugin.getCenterX;
+import static com.logmaster.LogMasterPlugin.getCenterY;
 import static com.logmaster.ui.InterfaceConstants.COLLECTION_LOG_WINDOW_HEIGHT;
 import static com.logmaster.ui.InterfaceConstants.COLLECTION_LOG_WINDOW_WIDTH;
 
@@ -151,7 +153,7 @@ public class TaskDashboard extends UIPage {
         this.taskImage.getWidget().setBorderType(1);
     }
 
-    public void setTask(String desc, int taskItemID, java.util.List<Task> cyclingTasks) {
+    public void setTask(String desc, int taskItemID, List<Task> cyclingTasks) {
         if (cyclingTasks != null) {
             for (int i = 0; i < 250; i++) {
                 Task displayTask = cyclingTasks.get((int) Math.floor(Math.random() * cyclingTasks.size()));
@@ -159,8 +161,8 @@ public class TaskDashboard extends UIPage {
                 double decay = 450.0 / ((double) config.rollTime());
                 int delay = (int) ((config.rollTime() * 0.925) * Math.exp(-decay * i));
                 Timer fakeTaskTimer = new Timer(delay, ae -> {
-                    this.taskLabel.setText(displayTask.getDescription());
-                    this.taskImage.setItem(displayTask.getItemID());
+                    this.taskLabel.setText(displayTask.getName());
+                    this.taskImage.setItem(displayTask.getDisplayItemId());
                 });
                 fakeTaskTimer.setRepeats(false);
                 fakeTaskTimer.setCoalesce(true);

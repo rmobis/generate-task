@@ -7,7 +7,6 @@ import com.logmaster.clog.ClogItemsManager;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskPointer;
 import com.logmaster.domain.TaskTier;
-import com.logmaster.domain.TieredTaskList;
 import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.task.TaskService;
 import com.logmaster.ui.InterfaceManager;
@@ -20,21 +19,12 @@ import net.runelite.api.GameState;
 import net.runelite.api.MenuAction;
 import net.runelite.api.Skill;
 import net.runelite.api.SoundEffectID;
-import net.runelite.api.StructComposition;
-import net.runelite.api.VarbitComposition;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.WidgetClosed;
-import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.client.callback.ClientThread;
-import net.runelite.client.chat.ChatCommandManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.game.ItemManager;
-import net.runelite.client.game.SpriteManager;
 import net.runelite.client.input.MouseManager;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.ScriptPreFired;
@@ -49,42 +39,20 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import javax.inject.Inject;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@PluginDescriptor(
-	name = "Collection Log Master"
-)
+@PluginDescriptor(name = "Collection Log Master")
 public class LogMasterPlugin extends Plugin {
-	private static final String TASK_CHAT_COMMAND = "!tasker";
-
-	private static final int COLLECTION_LOG_SETUP_SCRIPT_ID = 7797;
+    private static final int COLLECTION_LOG_SETUP_SCRIPT_ID = 7797;
 
 	@Inject
 	private Client client;
 
 	@Inject
-	private ClientThread clientThread;
-
-	@Inject
 	private LogMasterConfig config;
-
-	@Inject
-	private OkHttpClient okHttpClient;
-
-	@Inject
-	private SpriteManager spriteManager;
-	
-	@Inject
-	private Gson gson;
 
 	@Inject
 	private MouseManager mouseManager;
@@ -96,9 +64,6 @@ public class LogMasterPlugin extends Plugin {
 	private OverlayManager overlayManager;
 
 	@Inject
-	private ChatCommandManager chatCommandManager;
-
-	@Inject
 	private TaskService taskService;
 
 	@Inject
@@ -108,17 +73,10 @@ public class LogMasterPlugin extends Plugin {
 	private InterfaceManager interfaceManager;
 
 	@Inject
-	public ItemManager itemManager;
-
-	@Inject
 	public ClogItemsManager clogItemsManager;
 
-	private Map<Integer, Integer> chatSpriteMap = new HashMap<>();
-
-	private File playerFile;
-
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		mouseManager.registerMouseWheelListener(interfaceManager);
 		mouseManager.registerMouseListener(interfaceManager);
@@ -127,13 +85,10 @@ public class LogMasterPlugin extends Plugin {
 		this.taskOverlay.setResizable(true);
 		this.overlayManager.add(this.taskOverlay);
 		this.taskService.getTaskList();
-		// TODO when task save data can be stored and access externally; populate this with other people's data
-//		this.clientThread.invoke(this::populateChatSpriteMap);
-//		chatCommandManager.registerCommandAsync(TASK_CHAT_COMMAND, this::getTaskCommandData);
 	}
 
 	@Override
-	protected void shutDown() throws Exception {
+	protected void shutDown() {
 		mouseManager.unregisterMouseWheelListener(interfaceManager);
 		mouseManager.unregisterMouseListener(interfaceManager);
 		this.overlayManager.remove(this.taskOverlay);
@@ -230,8 +185,8 @@ public class LogMasterPlugin extends Plugin {
 		newTaskPointer.setTaskTier(getCurrentTier());
 		this.saveDataManager.getSaveData().setActiveTaskPointer(newTaskPointer);
 		this.saveDataManager.save();
-		interfaceManager.rollTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDescription(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getItemID(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
-		log.debug("Task generated: "+this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDescription());
+		interfaceManager.rollTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDisplayItemId(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
+		log.debug("Task generated: "+this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName());
 
 		this.saveDataManager.save();
 	}
@@ -240,15 +195,15 @@ public class LogMasterPlugin extends Plugin {
 		completeTask(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId(), saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier());
 	}
 
-	public boolean isTaskCompleted(int taskID, TaskTier tier) {
+	public boolean isTaskCompleted(String taskID, TaskTier tier) {
 		return saveDataManager.getSaveData().getProgress().get(tier).contains(taskID);
 	}
 
-	public void completeTask(int taskID, TaskTier tier) {
+	public void completeTask(String taskID, TaskTier tier) {
 		completeTask(taskID, tier, true);
 	}
 
-	public void completeTask(int taskID, TaskTier tier, boolean playSound) {
+	public void completeTask(String taskID, TaskTier tier, boolean playSound) {
 		if (playSound) {
 			this.client.playSoundEffect(SoundEffectID.UI_BOOP);
 		}
@@ -257,7 +212,7 @@ public class LogMasterPlugin extends Plugin {
 			saveDataManager.getSaveData().getProgress().get(tier).remove(taskID);
 		} else {
 			addCompletedTask(taskID, tier);
-			if (saveDataManager.getSaveData().getActiveTaskPointer() != null && taskID == saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId()) {
+			if (saveDataManager.getSaveData().getActiveTaskPointer() != null && taskID.equals(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId())) {
 				nullCurrentTask();
 			}
 		}
@@ -279,7 +234,7 @@ public class LogMasterPlugin extends Plugin {
 		return (window.getHeight() / 2) - (height / 2);
 	}
 
-	public void addCompletedTask(int taskID, TaskTier tier) {
+	public void addCompletedTask(String taskID, TaskTier tier) {
 		this.saveDataManager.getSaveData().getProgress().get(tier).add(taskID);
 		this.saveDataManager.save();
 	}

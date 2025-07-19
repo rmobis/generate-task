@@ -6,11 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class Task {
-    private int id;
-    private String description;
-    private Integer itemID;
-    @Nullable
-    private int[] check;
-    @Nullable
-    private Integer count;
+    private String id;
+    private String name;
+    private int displayItemId;
 }
