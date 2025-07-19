@@ -39,6 +39,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import javax.inject.Inject;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -173,9 +175,9 @@ public class LogMasterPlugin extends Plugin {
 		}
 
 		int index = (int) Math.floor(Math.random()*uniqueTasks.size());
-		String selectedTaskDescription = uniqueTasks.get(index).getDescription();
+		String selectedTaskDescription = uniqueTasks.get(index).getName();
 		Task selectedTask = uniqueTasks.stream()
-			.filter(task -> task.getDescription().equals(selectedTaskDescription))
+			.filter(task -> task.getName().equals(selectedTaskDescription))
 			.collect(Collectors.toList()).stream()
 			.min(Comparator.comparingInt(Task::getCount))
 			.orElse(uniqueTasks.get(index));
