@@ -111,17 +111,11 @@ public class SaveDataManager {
 
         updated.setSelectedTier(old.getSelectedTier());
 
-        OldTask oldTask = old.getCurrentTask();
-        if (oldTask != null) {
-            String newTaskId = v0MigrationData.get(old.getSelectedTier()).get(oldTask.getId());
-            updated.currentTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID());
-        }
-
         OldTaskPointer oldTaskPointer = old.getActiveTaskPointer();
         if (oldTaskPointer != null) {
-            OldTask oldPointerTask = oldTaskPointer.getTask();
-            String newTaskId = v0MigrationData.get(oldTaskPointer.getTaskTier()).get(oldPointerTask.getId());
-            Task newTask = new Task(newTaskId, oldPointerTask.getDescription(), oldPointerTask.getItemID());
+            OldTask oldTask = oldTaskPointer.getTask();
+            String newTaskId = v0MigrationData.get(oldTaskPointer.getTaskTier()).get(oldTask.getId());
+            Task newTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID());
             updated.setActiveTaskPointer(new TaskPointer(oldTaskPointer.getTaskTier(), newTask));
         }
 

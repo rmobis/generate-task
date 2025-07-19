@@ -22,8 +22,6 @@ public class OldSaveData {
         }
     }
 
-    public OldTask currentTask;
-
     private final Map<TaskTier, Set<Integer>> progress;
 
     @Setter
