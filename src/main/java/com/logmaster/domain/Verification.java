@@ -22,4 +22,9 @@ public class Verification {
      * Required count of items for task completion
      */
     private Integer count;
+    
+    /**
+     * Required varbit for task completion
+     */
+    private Integer varbit;
 }

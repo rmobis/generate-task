@@ -12,6 +12,7 @@ import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskTier;
 import com.logmaster.task.TaskService;
 import com.logmaster.ui.InterfaceManager;
+import com.logmaster.diary.AchievementDiaryManager;
 
 import net.runelite.api.events.ScriptPreFired;
 
@@ -37,6 +38,9 @@ public class ClogItemsManager {
 
     @Inject
     private InterfaceManager interfaceManager;
+
+    @Inject
+    private AchievementDiaryManager achievementDiaryManager;
 
     private static final HashSet<Integer> clogItemsUnlocked = new HashSet<>();
     private final Object syncButtonLock = new Object();
@@ -130,6 +134,11 @@ public class ClogItemsManager {
         // Update completed tasks automatically
         for (TaskTier tier : TaskTier.values()) {
             for (Task task : taskService.getTaskList().getForTier(tier)) {
+                // Only process tasks that use collection-log verification method
+                if (!task.getVerificationMethod().equals("collection-log")) {
+                    continue;
+                }
+
                 int[] check = task.getItemIds();
                 Integer taskCount = task.getCount();
                 if (check == null || taskCount == null) {
@@ -156,6 +165,10 @@ public class ClogItemsManager {
                 }
             }
         }
+        
+        // Also sync achievement diary progress
+        log.debug("Running achievement diary sync as part of collection log sync");
+        achievementDiaryManager.sync();
         
         // Reset the flag after sync is complete
         userInitiatedSync = false;

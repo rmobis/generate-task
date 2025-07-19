@@ -115,7 +115,7 @@ public class SaveDataManager {
         if (oldTaskPointer != null) {
             OldTask oldTask = oldTaskPointer.getTask();
             String newTaskId = v0MigrationData.get(oldTaskPointer.getTaskTier()).get(oldTask.getId());
-            Task newTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID());
+            Task newTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID(), null);
             updated.setActiveTaskPointer(new TaskPointer(oldTaskPointer.getTaskTier(), newTask));
         }
 

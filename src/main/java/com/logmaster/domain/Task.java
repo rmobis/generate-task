@@ -20,11 +20,17 @@ public class Task {
         return verification != null ? verification.getItemIds() : null;
     }
 
+    @Nullable
     public Integer getCount() {
-        return verification != null ? verification.getCount() : 0;
+        return verification != null ? verification.getCount() : null;
     }
 
     public String getVerificationMethod() {
         return verification != null ? verification.getMethod() : "";
+    }
+
+    @Nullable
+    public Integer getVarbit() {
+        return verification != null ? verification.getVarbit() : null;
     }
 }
