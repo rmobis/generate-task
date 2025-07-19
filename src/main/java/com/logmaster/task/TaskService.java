@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskService {
 
-    private static final String DEF_FILE_TASKS = "task-list/lists/tedious.json";
+    private static final String DEF_FILE_TASKS = "task-list.json";
 
     @Inject
     private Gson gson;
