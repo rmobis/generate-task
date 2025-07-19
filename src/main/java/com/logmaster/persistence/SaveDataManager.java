@@ -2,11 +2,10 @@ package com.logmaster.persistence;
 
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.logmaster.domain.BaseSaveData;
-import com.logmaster.domain.SaveData;
-import com.logmaster.domain.Task;
-import com.logmaster.domain.TaskTier;
+import com.logmaster.domain.*;
 import com.logmaster.domain.old.OldSaveData;
+import com.logmaster.domain.old.OldTask;
+import com.logmaster.domain.old.OldTaskPointer;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
@@ -20,10 +19,9 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 
-import static com.logmaster.LogMasterConfig.CONFIG_GROUP;
-import static com.logmaster.LogMasterConfig.SAVE_DATA_KEY;
-import static com.logmaster.LogMasterConfig.BACKUP_SAVE_DATA_KEY;
+import static com.logmaster.LogMasterConfig.*;
 import static net.runelite.http.api.RuneLiteAPI.GSON;
+
 @Singleton
 @Slf4j
 public class SaveDataManager {
@@ -109,6 +107,22 @@ public class SaveDataManager {
                     newTierData.add(tierMigrationData.get(oldTaskId));
                 }
             }
+        }
+
+        updated.setSelectedTier(old.getSelectedTier());
+
+        OldTask oldTask = old.getCurrentTask();
+        if (oldTask != null) {
+            String newTaskId = v0MigrationData.get(old.getSelectedTier()).get(oldTask.getId());
+            updated.currentTask = new Task(newTaskId, oldTask.getDescription(), oldTask.getItemID());
+        }
+
+        OldTaskPointer oldTaskPointer = old.getActiveTaskPointer();
+        if (oldTaskPointer != null) {
+            OldTask oldPointerTask = oldTaskPointer.getTask();
+            String newTaskId = v0MigrationData.get(oldTaskPointer.getTaskTier()).get(oldPointerTask.getId());
+            Task newTask = new Task(newTaskId, oldPointerTask.getDescription(), oldPointerTask.getItemID());
+            updated.setActiveTaskPointer(new TaskPointer(oldTaskPointer.getTaskTier(), newTask));
         }
 
         return updated;
