@@ -167,7 +167,8 @@ public class LogMasterPlugin extends Plugin {
 	}
 
 	public void generateTask() {
-		if(this.saveDataManager.getSaveData().currentTask != null || taskService.getTaskList() == null) {
+		TaskPointer pointer =this.saveDataManager.getSaveData().getActiveTaskPointer();
+		if ((pointer != null && pointer.getTask() != null) || taskService.getTaskList() == null) {
 			interfaceManager.disableGenerateTaskButton();
 			return;
 		}
