@@ -266,8 +266,8 @@ public class TaskList extends UIPage {
                 taskLabel.getWidget().setHidden(false);
                 taskLabel.getWidget().setTextColor(Color.WHITE.getRGB());
                 taskLabel.getWidget().setTextShadowed(true);
-                taskLabel.getWidget().setName(task.getDescription());
-                taskLabel.setText(task.getDescription());
+                taskLabel.getWidget().setName(task.getName());
+                taskLabel.setText(task.getName());
                 taskLabel.setFont(496);
                 taskLabel.setPosition(taskX + 60, taskY);
                 taskLabel.setSize(TASK_WIDTH-60, TASK_HEIGHT);
@@ -289,7 +289,7 @@ public class TaskList extends UIPage {
                 taskImage.getWidget().setItemQuantityMode(ItemQuantityMode.NEVER);
                 taskImage.setSize(TASK_ITEM_WIDTH, TASK_ITEM_HEIGHT);
                 if (
-                    !task.getDescription().contains("clues")
+                    !task.getName().contains("clues")
                     && ((!taskCompleted && config.dynamicIncompleteItems()) || (taskCompleted && config.dynamicCompletedItems()))
                     && checkArray != null && checkArray.length > 0
                 ) {
@@ -303,11 +303,11 @@ public class TaskList extends UIPage {
                         }
                     }
                     if (potentialItems.isEmpty()) {
-                        potentialItems.add(task.getItemID());
+                        potentialItems.add(task.getDisplayItemId());
                     }
                     taskImage.setItem(potentialItems.get((count - 1) % potentialItems.size()));
                 } else {
-                    taskImage.setItem(task.getItemID());
+                    taskImage.setItem(task.getDisplayItemId());
                 }
                 taskImage.getWidget().revalidate();
                 widgetIndex++;
