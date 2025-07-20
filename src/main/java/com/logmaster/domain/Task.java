@@ -3,6 +3,8 @@ package com.logmaster.domain;
 import javax.annotation.Nullable;
 
 import com.logmaster.domain.verification.Verification;
+import com.logmaster.domain.verification.AchievementDiaryVerification;
+import com.logmaster.domain.verification.CollectionLogVerification;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,16 +28,16 @@ public class Task {
     // Collection log specific methods
     @Nullable
     public int[] getItemIds() {
-        if (verification instanceof com.logmaster.domain.verification.CollectionLogVerification) {
-            return ((com.logmaster.domain.verification.CollectionLogVerification) verification).getItemIds();
+        if (verification instanceof CollectionLogVerification) {
+            return ((CollectionLogVerification) verification).getItemIds();
         }
         return null;
     }
 
     @Nullable
     public Integer getCount() {
-        if (verification instanceof com.logmaster.domain.verification.CollectionLogVerification) {
-            return ((com.logmaster.domain.verification.CollectionLogVerification) verification).getCount();
+        if (verification instanceof CollectionLogVerification) {
+            return ((CollectionLogVerification) verification).getCount();
         }
         return null;
     }
@@ -43,16 +45,16 @@ public class Task {
     // Achievement diary specific methods
     @Nullable
     public String getRegion() {
-        if (verification instanceof com.logmaster.domain.verification.AchievementDiaryVerification) {
-            return ((com.logmaster.domain.verification.AchievementDiaryVerification) verification).getRegion();
+        if (verification instanceof AchievementDiaryVerification) {
+            return ((AchievementDiaryVerification) verification).getRegion();
         }
         return null;
     }
 
     @Nullable
     public String getDifficulty() {
-        if (verification instanceof com.logmaster.domain.verification.AchievementDiaryVerification) {
-            return ((com.logmaster.domain.verification.AchievementDiaryVerification) verification).getDifficulty();
+        if (verification instanceof AchievementDiaryVerification) {
+            return ((AchievementDiaryVerification) verification).getDifficulty();
         }
         return null;
     }
