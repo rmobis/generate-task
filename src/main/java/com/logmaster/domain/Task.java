@@ -16,7 +16,12 @@ public class Task {
     
     @Nullable
     private Verification verification;
+
+    public String getVerificationMethod() {
+        return verification != null ? verification.getMethod() : "";
+    }
     
+    // Collection log specific methods
     @Nullable
     public int[] getItemIds() {
         return verification != null ? verification.getItemIds() : null;
@@ -27,12 +32,14 @@ public class Task {
         return verification != null ? verification.getCount() : null;
     }
 
-    public String getVerificationMethod() {
-        return verification != null ? verification.getMethod() : "";
+    // Achievement diary specific methods
+    @Nullable
+    public String getArea() {
+        return verification != null ? verification.getArea() : null;
     }
 
     @Nullable
-    public Integer getVarbit() {
-        return verification != null ? verification.getVarbit() : null;
+    public String getTier() {
+        return verification != null ? verification.getTier() : null;
     }
 }

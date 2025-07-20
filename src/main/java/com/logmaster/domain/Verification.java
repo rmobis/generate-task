@@ -28,8 +28,14 @@ public class Verification {
     private Integer count;
     
     /**
-     * Required varbit to check for task completion
+     * Required area to check for achievement diary tasks.
      */
     @Nullable
-    private Integer varbit;
+    private String area;
+    
+    /**
+     * Required tier to check for achievement diary tasks.
+     */
+    @Nullable
+    private String tier;
 }

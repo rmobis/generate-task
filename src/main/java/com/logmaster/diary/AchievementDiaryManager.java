@@ -27,8 +27,15 @@ public class AchievementDiaryManager {
     public void initialise() {
     }
 
-    public boolean isAchievementDiaryCompleted(int diaryID, int count) {
-        boolean isCompleted = getVarbitValue(diaryID) == count;
+    public boolean isAchievementDiaryCompleted(String area, String tier) {
+        AchievementDiaryMapping.DiaryInfo diaryInfo = AchievementDiaryMapping.getDiaryInfo(area, tier);
+        if (diaryInfo == null) {
+            log.warn("No diary mapping found for area '{}' and tier '{}'", area, tier);
+            return false;
+        }
+        int varbit = diaryInfo.varbit;
+        int value = diaryInfo.value;
+        boolean isCompleted = getVarbitValue(varbit) == value;
         return isCompleted;
     }
 
@@ -56,21 +63,18 @@ public class AchievementDiaryManager {
                 if (!task.getVerificationMethod().equals("achievement-diary")) {
                     continue;
                 }
-                
-                Integer varbit = task.getVarbit();
-                // Default to 1 if count is not specified
-                Integer countObj = task.getCount();
-                int count = (countObj != null) ? countObj : 1;
-                if (varbit == null) {
-                    log.warn("Task '{}' has achievement-diary verification but no varbit specified", task.getName());
+
+                String achievementArea = task.getArea();
+                String achievementTier = task.getTier();
+                if (achievementArea == null || achievementTier == null) {
+                    log.warn("Task '{}' has achievement-diary verification but no area/tier specified", task.getName());
                     continue;
                 }
 
-                boolean isDiaryCompleted = isAchievementDiaryCompleted(varbit, count);
+                boolean isDiaryCompleted = isAchievementDiaryCompleted(achievementArea, achievementTier);
                 boolean isTaskCompleted = plugin.isTaskCompleted(task.getId(), tier);
 
-                log.info("Checking task '{}': {}",
-                    task.getName(), isDiaryCompleted);
+                log.info("Checking task '{}': {}", task.getName(), isDiaryCompleted);
 
                 if (isDiaryCompleted && !isTaskCompleted) {
                     // Diary is completed but task is not marked as completed - mark it as completed
