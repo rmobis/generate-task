@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.logmaster.util.GsonOverride.GSON;
 
@@ -196,16 +197,7 @@ public class LogMasterPlugin extends Plugin {
 			return;
 		}
 
-		// Select a random task from the available tasks
-		int index = (int) Math.floor(Math.random()*uniqueTasks.size());
-		// If there are multiple tasks with the same name, select the one with the lowest count
-		String selectedTaskName = uniqueTasks.get(index).getName();
-		Task selectedTask = uniqueTasks.stream()
-			.filter(task -> task.getName().equals(selectedTaskName))
-			.collect(Collectors.toList()).stream()
-			.min(Comparator.comparingInt(Task::getCount))
-			.orElse(uniqueTasks.get(index));
-
+		Task selectedTask = pickRandomTask(uniqueTasks);
 		TaskPointer newTaskPointer = new TaskPointer();
 		newTaskPointer.setTask(selectedTask);
 		newTaskPointer.setTaskTier(getCurrentTier());
@@ -215,6 +207,25 @@ public class LogMasterPlugin extends Plugin {
 		log.debug("Task generated: {} - {}", newTaskPointer.getTask().getName(), newTaskPointer.getTask().getId());
 
 		this.saveDataManager.save();
+	}
+
+	private static Task pickRandomTask(List<Task> uniqueTasks) {
+		int index = (int) Math.floor(Math.random() * uniqueTasks.size());
+		Task task = uniqueTasks.get(index);
+
+		if (!(task.getVerification() instanceof CollectionLogVerification)) {
+			return task;
+		}
+
+		// get first of similarly named tasks
+		String taskName = task.getName();
+		Stream<Task> similarTasks = uniqueTasks.stream()
+				.filter(t -> taskName.equals(t.getName()))
+				.filter(t -> t.getVerification() instanceof CollectionLogVerification);
+
+		return similarTasks.min(Comparator.comparingInt(
+			t -> ((CollectionLogVerification) t.getVerification()).getCount()
+		)).orElse(task);
 	}
 
 	public void completeTask() {
