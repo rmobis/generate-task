@@ -4,6 +4,9 @@ import com.google.inject.Provides;
 import com.logmaster.domain.Task;
 import com.logmaster.domain.TaskPointer;
 import com.logmaster.domain.TaskTier;
+import com.logmaster.domain.verification.AchievementDiaryVerification;
+import com.logmaster.domain.verification.CollectionLogVerification;
+import com.logmaster.domain.verification.Verification;
 import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.task.TaskService;
 import com.logmaster.ui.InterfaceManager;
@@ -29,6 +32,8 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.logmaster.util.GsonOverride.GSON;
 
 @Slf4j
 @PluginDescriptor(name = "Collection Log Master")
@@ -62,6 +67,23 @@ public class LogMasterPlugin extends Plugin {
 	@Override
 	protected void startUp()
 	{
+		String diaryJson = "{\"method\":\"achievement-diary\",\"region\":\"ardougne\",\"difficulty\":\"easy\"}";
+		Verification verif = GSON.fromJson(diaryJson, Verification.class);
+
+		if (verif instanceof AchievementDiaryVerification) {
+			AchievementDiaryVerification diaryVerif = (AchievementDiaryVerification) verif;
+			log.info("{}", diaryVerif.getRegion());
+		}
+
+		String clogJson = "{\"method\":\"collection-log\",\"itemIds\":[123],\"count\":1}";
+		Verification verif2 = GSON.fromJson(clogJson, Verification.class);
+
+		if (verif2 instanceof CollectionLogVerification) {
+			CollectionLogVerification clogVerif = (CollectionLogVerification) verif2;
+			log.info("{}", clogVerif.getItemIds());
+		}
+
+
 		mouseManager.registerMouseWheelListener(interfaceManager);
 		mouseManager.registerMouseListener(interfaceManager);
 		interfaceManager.initialise();
