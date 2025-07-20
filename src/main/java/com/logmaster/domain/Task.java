@@ -2,6 +2,8 @@ package com.logmaster.domain;
 
 import javax.annotation.Nullable;
 
+import com.logmaster.domain.verification.Verification;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,22 +26,34 @@ public class Task {
     // Collection log specific methods
     @Nullable
     public int[] getItemIds() {
-        return verification != null ? verification.getItemIds() : null;
+        if (verification instanceof com.logmaster.domain.verification.CollectionLogVerification) {
+            return ((com.logmaster.domain.verification.CollectionLogVerification) verification).getItemIds();
+        }
+        return null;
     }
 
     @Nullable
     public Integer getCount() {
-        return verification != null ? verification.getCount() : null;
+        if (verification instanceof com.logmaster.domain.verification.CollectionLogVerification) {
+            return ((com.logmaster.domain.verification.CollectionLogVerification) verification).getCount();
+        }
+        return null;
     }
 
     // Achievement diary specific methods
     @Nullable
     public String getRegion() {
-        return verification != null ? verification.getRegion() : null;
+        if (verification instanceof com.logmaster.domain.verification.AchievementDiaryVerification) {
+            return ((com.logmaster.domain.verification.AchievementDiaryVerification) verification).getRegion();
+        }
+        return null;
     }
 
     @Nullable
     public String getDifficulty() {
-        return verification != null ? verification.getDifficulty() : null;
+        if (verification instanceof com.logmaster.domain.verification.AchievementDiaryVerification) {
+            return ((com.logmaster.domain.verification.AchievementDiaryVerification) verification).getDifficulty();
+        }
+        return null;
     }
 }

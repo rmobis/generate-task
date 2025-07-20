@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.logmaster.LogMasterConfig.*;
-import static net.runelite.http.api.RuneLiteAPI.GSON;
+import static com.logmaster.util.GsonOverride.GSON;
 
 @Singleton
 @Slf4j
