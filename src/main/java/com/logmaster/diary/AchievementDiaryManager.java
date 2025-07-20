@@ -58,7 +58,9 @@ public class AchievementDiaryManager {
                 }
                 
                 Integer varbit = task.getVarbit();
-                int count = task.getCount() != null ? task.getCount() : 1;
+                // Default to 1 if count is not specified
+                Integer countObj = task.getCount();
+                int count = (countObj != null) ? countObj : 1;
                 if (varbit == null) {
                     log.warn("Task '{}' has achievement-diary verification but no varbit specified", task.getName());
                     continue;

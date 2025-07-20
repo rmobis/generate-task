@@ -48,9 +48,6 @@ public class ClogItemsManager {
     private TimerTask syncButtonTask = null;
     private boolean userInitiatedSync = false;
 
-    public void initialise() {
-    }
-
     public boolean isCollectionLogItemUnlocked(int itemId) {
         // Some items have bad IDs, check these ones for a replacement
         EnumComposition replacements = client.getEnum(3721);

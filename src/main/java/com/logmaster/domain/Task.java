@@ -13,6 +13,8 @@ public class Task {
     private String id;
     private String name;
     private int displayItemId;
+    
+    @Nullable
     private Verification verification;
     
     @Nullable

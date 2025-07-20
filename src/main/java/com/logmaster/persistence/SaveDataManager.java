@@ -41,10 +41,8 @@ public class SaveDataManager {
     }
 
     public Task currentTask() {
-        if (getSaveData().getActiveTaskPointer() == null) {
-            return null;
-        }
-        return getSaveData().getActiveTaskPointer().getTask();
+        TaskPointer activeTaskPointer = getSaveData().getActiveTaskPointer();
+        return activeTaskPointer != null ? activeTaskPointer.getTask() : null;
     }
 
     private SaveData loadSaveData() {

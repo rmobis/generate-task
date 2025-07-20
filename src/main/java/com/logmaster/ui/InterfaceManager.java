@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.logmaster.LogMasterConfig;
 import com.logmaster.LogMasterPlugin;
 import com.logmaster.domain.Task;
+import com.logmaster.domain.TaskPointer;
 import com.logmaster.domain.TaskTier;
 import com.logmaster.persistence.SaveDataManager;
 import com.logmaster.task.TaskService;
@@ -26,7 +27,6 @@ import net.runelite.client.input.MouseWheelListener;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.swing.Timer;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.Arrays;
@@ -262,8 +262,9 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
     private void toggleTaskDashboard(UIDropdownOption src) {
         if(this.taskDashboard == null) return;
 
-        if (saveDataManager.getSaveData().getActiveTaskPointer() != null) {
-            this.taskDashboard.setTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDisplayItemId(), null);
+        TaskPointer activeTaskPointer = saveDataManager.getSaveData().getActiveTaskPointer();
+        if (activeTaskPointer != null) {
+            this.taskDashboard.setTask(activeTaskPointer.getTask().getName(), activeTaskPointer.getTask().getDisplayItemId(), null);
             this.taskDashboard.disableGenerateTask();
         } else {
             plugin.nullCurrentTask();
@@ -273,10 +274,16 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
         
         
         this.taskDashboardCheckbox.setEnabled(enabled);
-        for (Widget c : client.getWidget(InterfaceID.Collection.CONTENT).getStaticChildren()) {
-            c.setHidden(enabled);
+        Widget contentWidget = client.getWidget(InterfaceID.Collection.CONTENT);
+        if (contentWidget != null) {
+            for (Widget c : contentWidget.getStaticChildren()) {
+                c.setHidden(enabled);
+            }
         }
-        client.getWidget(InterfaceID.Collection.SEARCH_TITLE).setHidden(enabled);
+        Widget searchTitleWidget = client.getWidget(InterfaceID.Collection.SEARCH_TITLE);
+        if (searchTitleWidget != null) {
+            searchTitleWidget.setHidden(enabled);
+        }
 
         if (enabled) {
             this.tabManager.activateTaskDashboard();

@@ -81,7 +81,6 @@ public class LogMasterPlugin extends Plugin {
 		mouseManager.registerMouseWheelListener(interfaceManager);
 		mouseManager.registerMouseListener(interfaceManager);
 		interfaceManager.initialise();
-		clogItemsManager.initialise();
 		this.taskOverlay.setResizable(true);
 		this.overlayManager.add(this.taskOverlay);
 		this.taskService.getTaskList();
@@ -112,11 +111,13 @@ public class LogMasterPlugin extends Plugin {
 		
 		switch (gameStateChanged.getGameState())
 		{
-			// When hopping, we need to clear any state related to the player
+			// When hopping, we clear the collection log to prevent stale data
 			case HOPPING:
 			case LOGGING_IN:
 			case CONNECTION_LOST:
 				clogItemsManager.clearCollectionLog();
+				break;
+			default:
 				break;
 		}
 	}
@@ -173,10 +174,12 @@ public class LogMasterPlugin extends Plugin {
 			return;
 		}
 
+		// Select a random task from the available tasks
 		int index = (int) Math.floor(Math.random()*uniqueTasks.size());
-		String selectedTaskDescription = uniqueTasks.get(index).getName();
+		// If there are multiple tasks with the same name, select the one with the lowest count
+		String selectedTaskName = uniqueTasks.get(index).getName();
 		Task selectedTask = uniqueTasks.stream()
-			.filter(task -> task.getName().equals(selectedTaskDescription))
+			.filter(task -> task.getName().equals(selectedTaskName))
 			.collect(Collectors.toList()).stream()
 			.min(Comparator.comparingInt(Task::getCount))
 			.orElse(uniqueTasks.get(index));
@@ -186,14 +189,17 @@ public class LogMasterPlugin extends Plugin {
 		newTaskPointer.setTaskTier(getCurrentTier());
 		this.saveDataManager.getSaveData().setActiveTaskPointer(newTaskPointer);
 		this.saveDataManager.save();
-		interfaceManager.rollTask(this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName(), this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getDisplayItemId(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
-		log.debug("Task generated: "+this.saveDataManager.getSaveData().getActiveTaskPointer().getTask().getName());
+		interfaceManager.rollTask(newTaskPointer.getTask().getName(), newTaskPointer.getTask().getDisplayItemId(), config.rollPastCompleted() ? taskService.getForTier(getCurrentTier()) : uniqueTasks);
+		log.debug("Task generated: {} - {}", newTaskPointer.getTask().getName(), newTaskPointer.getTask().getId());
 
 		this.saveDataManager.save();
 	}
 
 	public void completeTask() {
-		completeTask(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId(), saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier());
+		TaskPointer activeTaskPointer = saveDataManager.getSaveData().getActiveTaskPointer();
+		if (activeTaskPointer != null && activeTaskPointer.getTask() != null) {
+			completeTask(activeTaskPointer.getTask().getId(), activeTaskPointer.getTaskTier());
+		}
 	}
 
 	public boolean isTaskCompleted(String taskID, TaskTier tier) {
@@ -213,7 +219,8 @@ public class LogMasterPlugin extends Plugin {
 			saveDataManager.getSaveData().getProgress().get(tier).remove(taskID);
 		} else {
 			addCompletedTask(taskID, tier);
-			if (saveDataManager.getSaveData().getActiveTaskPointer() != null && taskID.equals(saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId())) {
+			TaskPointer activePointer = saveDataManager.getSaveData().getActiveTaskPointer();
+			if (activePointer != null && activePointer.getTask() != null && taskID.equals(activePointer.getTask().getId())) {
 				nullCurrentTask();
 			}
 		}
@@ -286,6 +293,7 @@ public class LogMasterPlugin extends Plugin {
 	@Subscribe
 	public void onScriptPreFired(ScriptPreFired preFired) {
 		// This is fired when the collection log search is opened
+		// This will allow us to see all the item IDs of obtained items
 		if (preFired.getScriptId() == 4100){
 			clogItemsManager.updatePlayersCollectionLogItems(preFired);
 		}

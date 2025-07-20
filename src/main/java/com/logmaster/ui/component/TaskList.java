@@ -214,8 +214,8 @@ public class TaskList extends UIPage {
                 // Add our right click actions
                 taskBg.addAction("Mark as " + (taskCompleted ? "<col=c0392b>incomplete" : "<col=27ae60>completed") + "</col>", () -> plugin.completeTask(task.getId(), finalRelevantTier));
                 int[] checkArray = task.getItemIds();
-                Integer count = task.getCount() != null ? task.getCount() : 0;
-                if (checkArray != null && checkArray.length > 0) {
+                Integer count = task.getCount();
+                if (checkArray != null && checkArray.length > 0 && count != null && count > 0) {
                     taskBg.addAction("==============", () -> {});
                     List<String> lockedItems = new ArrayList<>();
                     List<String> unlockedItems = new ArrayList<>();
@@ -241,14 +241,18 @@ public class TaskList extends UIPage {
                     for (String item : unlockedItems) {
                         taskBg.addAction("<col=27ae60>+</col> " + item, () -> {});
                     }
-                    taskBg.addAction("     ", () -> {});
                 }
 
                 // Set our background sprite based on task state
-                if (taskCompleted) {
-                    taskBg.setSprite(TASK_COMPLETE_BACKGROUND_SPRITE_ID);
-                } else if (saveDataManager.getSaveData().getActiveTaskPointer() != null && saveDataManager.getSaveData().getActiveTaskPointer().getTaskTier() == relevantTier && saveDataManager.getSaveData().getActiveTaskPointer().getTask().getId() == task.getId()) {
+                var activeTaskPointer = saveDataManager.getSaveData().getActiveTaskPointer();
+                if (
+                    activeTaskPointer != null
+                    && activeTaskPointer.getTaskTier() == relevantTier
+                    && activeTaskPointer.getTask().getId() == task.getId()
+                ) {
                     taskBg.setSprite(TASK_CURRENT_BACKGROUND_SPRITE_ID);
+                } else if (taskCompleted) {
+                    taskBg.setSprite(TASK_COMPLETE_BACKGROUND_SPRITE_ID);
                 } else {
                     taskBg.setSprite(TASK_LIST_BACKGROUND_SPRITE_ID);
                 }
@@ -305,7 +309,7 @@ public class TaskList extends UIPage {
                     if (potentialItems.isEmpty()) {
                         potentialItems.add(task.getDisplayItemId());
                     }
-                    taskImage.setItem(potentialItems.get((count - 1) % potentialItems.size()));
+                    taskImage.setItem(potentialItems.get((count != null ? count : 1) - 1) % potentialItems.size());
                 } else {
                     taskImage.setItem(task.getDisplayItemId());
                 }
