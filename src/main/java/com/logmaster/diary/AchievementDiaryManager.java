@@ -63,14 +63,14 @@ public class AchievementDiaryManager {
                     continue;
                 }
 
-                String achievementArea = task.getArea();
-                String achievementTier = task.getTier();
-                if (achievementArea == null || achievementTier == null) {
+                String achievementRegion = task.getRegion();
+                String achievementDifficulty = task.getDifficulty();
+                if (achievementRegion == null || achievementDifficulty == null) {
                     log.warn("Task '{}' has achievement-diary verification but no area/tier specified", task.getName());
                     continue;
                 }
 
-                boolean isDiaryCompleted = isAchievementDiaryCompleted(achievementArea, achievementTier);
+                boolean isDiaryCompleted = isAchievementDiaryCompleted(achievementRegion, achievementDifficulty);
                 boolean isTaskCompleted = plugin.isTaskCompleted(task.getId(), tier);
 
                 if (isDiaryCompleted && !isTaskCompleted) {

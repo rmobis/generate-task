@@ -15,27 +15,17 @@ public class Verification {
      */
     private String method;
     
-    /**
-     * Array of item IDs used for verification
-     */
+    // Collection log specific fields
     @Nullable
     private int[] itemIds;
     
-    /**
-     * Required count of items for task completion, or value of varbit
-     */
     @Nullable
     private Integer count;
     
-    /**
-     * Required area to check for achievement diary tasks.
-     */
+    // Achievement diary specific fields
     @Nullable
-    private String area;
+    private String region;
     
-    /**
-     * Required tier to check for achievement diary tasks.
-     */
     @Nullable
-    private String tier;
+    private String difficulty;
 }

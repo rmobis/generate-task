@@ -34,12 +34,12 @@ public class Task {
 
     // Achievement diary specific methods
     @Nullable
-    public String getArea() {
-        return verification != null ? verification.getArea() : null;
+    public String getRegion() {
+        return verification != null ? verification.getRegion() : null;
     }
 
     @Nullable
-    public String getTier() {
-        return verification != null ? verification.getTier() : null;
+    public String getDifficulty() {
+        return verification != null ? verification.getDifficulty() : null;
     }
 }

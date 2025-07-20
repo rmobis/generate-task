@@ -12,14 +12,14 @@ public class AchievementDiaryMapping {
     public static class DiaryInfo {
         public final int varbit;
         public final int value;
-        public final String area;
-        public final String tier;
+        public final String region;
+        public final String difficulty;
         
-        public DiaryInfo(int varbit, int value, String area, String tier) {
+        public DiaryInfo(int varbit, int value, String region, String difficulty) {
             this.varbit = varbit;
             this.value = value;
-            this.area = area;
-            this.tier = tier;
+            this.region = region;
+            this.difficulty = difficulty;
         }
     }
     
