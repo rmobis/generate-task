@@ -1,6 +1,5 @@
 package com.logmaster.ui;
 
-import com.google.gson.Gson;
 import com.logmaster.LogMasterConfig;
 import com.logmaster.LogMasterPlugin;
 import com.logmaster.domain.Task;
@@ -56,9 +55,6 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
     private SpriteManager spriteManager;
 
     @Inject
-    private Gson gson;
-
-    @Inject
     private SaveDataManager saveDataManager;
 
 
@@ -72,7 +68,7 @@ public class InterfaceManager implements MouseListener, MouseWheelListener {
     private UIDropdown dropdown;
 
     public void initialise() {
-        this.spriteDefinitions = FileUtils.loadDefinitionResource(SpriteDefinition[].class, DEF_FILE_SPRITES, gson);
+        this.spriteDefinitions = FileUtils.loadDefinitionResource(SpriteDefinition[].class, DEF_FILE_SPRITES);
         this.spriteManager.addSpriteOverrides(spriteDefinitions);
     }
 
