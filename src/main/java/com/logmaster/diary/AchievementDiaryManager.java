@@ -77,13 +77,13 @@ public class AchievementDiaryManager {
                     // Diary is completed but task is not marked as completed - mark it as completed
                     plugin.completeTask(task.getId(), tier, false);
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", 
-                        tier.displayName + " tier task '" + task.getName() + "' marked as <col=27ae60>completed</col> (achievement diary verified).", null);
+                        tier.displayName + " tier task '" + task.getName() + "' marked as <col=27ae60>completed</col>.", null);
                     log.debug("Task '{}' marked as completed for tier {} (achievement diary completed)", task.getName(), tier.displayName);
                 } else if (!isDiaryCompleted && isTaskCompleted) {
                     // Diary is not completed but task is marked as completed - unmark it
                     plugin.completeTask(task.getId(), tier, false);
                     client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", 
-                        tier.displayName + " tier task '" + task.getName() + "' marked as <col=c0392b>incomplete</col> (achievement diary not completed).", null);
+                        tier.displayName + " tier task '" + task.getName() + "' marked as <col=c0392b>incomplete</col>.", null);
                     log.debug("Task '{}' unmarked as completed for tier {} (achievement diary not completed)", task.getName(), tier.displayName);
                 }
             }
