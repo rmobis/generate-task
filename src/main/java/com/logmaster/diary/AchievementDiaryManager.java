@@ -57,7 +57,6 @@ public class AchievementDiaryManager {
     public void sync() {
         // Check all tasks across all tiers for achievement diary verification
         for (TaskTier tier : TaskTier.values()) {
-            log.info("==== Syncing Diary for tier: {} ====", tier.displayName);
             for (Task task : taskService.getTaskList().getForTier(tier)) {
                 // Only process tasks that use achievement-diary verification method
                 if (!task.getVerificationMethod().equals("achievement-diary")) {
@@ -73,8 +72,6 @@ public class AchievementDiaryManager {
 
                 boolean isDiaryCompleted = isAchievementDiaryCompleted(achievementArea, achievementTier);
                 boolean isTaskCompleted = plugin.isTaskCompleted(task.getId(), tier);
-
-                log.info("Checking task '{}': {}", task.getName(), isDiaryCompleted);
 
                 if (isDiaryCompleted && !isTaskCompleted) {
                     // Diary is completed but task is not marked as completed - mark it as completed
