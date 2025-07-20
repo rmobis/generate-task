@@ -5,12 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
-import java.util.Set;
-
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CollectionLogVerification extends Verification {
-    private @NonNull Set<Integer> itemIds;
+    private @NonNull int[] itemIds;
     private int count;
 }
